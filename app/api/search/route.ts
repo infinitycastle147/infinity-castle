@@ -6,6 +6,10 @@ import { embedSearchQuery } from "../../../src/lib/notes/service";
 
 export const runtime = "nodejs";
 
+// Keep weak semantic matches out of the result list while retaining room for
+// up to five strong matches.
+const SEARCH_MATCH_THRESHOLD = 0.5;
+
 export async function POST(request: Request) {
   const auth = await authenticatedClient();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -20,7 +24,7 @@ export async function POST(request: Request) {
     }
     const threshold = typeof body.threshold === "number"
       ? Math.max(-1, Math.min(1, body.threshold))
-      : 0;
+      : SEARCH_MATCH_THRESHOLD;
     const embedding = await embedSearchQuery(body.query, new GeminiEmbedder());
     const { data, error } = await auth.supabase.rpc("hybrid_search", {
       query_text: body.query,
