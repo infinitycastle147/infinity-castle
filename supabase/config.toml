@@ -1,0 +1,9 @@
+project_id = "infinity-castle"
+
+[auth]
+enable_signup = false
+
+[auth.email]
+enable_signup = false
+enable_confirmations = true
+double_confirm_changes = true
