@@ -2,29 +2,24 @@ import { NextResponse } from "next/server";
 
 import { apiError, authenticatedClient } from "../../../src/lib/api";
 import { GeminiEmbedder } from "../../../src/lib/notes/gemini-embedder";
+import { semanticMatchThreshold } from "../../../src/lib/notes/search-policy";
 import { embedSearchQuery } from "../../../src/lib/notes/service";
 
 export const runtime = "nodejs";
-
-// Keep weak semantic matches out of the result list while retaining room for
-// up to five strong matches.
-const SEARCH_MATCH_THRESHOLD = 0.5;
 
 export async function POST(request: Request) {
   const auth = await authenticatedClient();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const body = await request.json() as { query?: unknown; threshold?: unknown };
+    const body = await request.json() as { query?: unknown };
     if (typeof body.query !== "string" || !body.query.trim()) {
       return NextResponse.json({ error: "Search query is required" }, { status: 400 });
     }
     if (body.query.length > 500) {
       return NextResponse.json({ error: "Search query is too long" }, { status: 400 });
     }
-    const threshold = typeof body.threshold === "number"
-      ? Math.max(-1, Math.min(1, body.threshold))
-      : SEARCH_MATCH_THRESHOLD;
+    const threshold = semanticMatchThreshold(body.query);
     const embedding = await embedSearchQuery(body.query, new GeminiEmbedder());
     const { data, error } = await auth.supabase.rpc("hybrid_search", {
       query_text: body.query,

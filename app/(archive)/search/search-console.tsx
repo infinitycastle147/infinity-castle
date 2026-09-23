@@ -54,7 +54,11 @@ export function SearchConsole() {
             <Link className="result-card" href={`/note/${result.note_id}`} key={result.chunk_id}>
               <span className="result-rank">{String(index + 1).padStart(2, "0")}</span>
               <div><h2 className="result-title">{result.title}</h2><p className="result-content">{result.content}</p></div>
-              <span className="result-score">RRF {Number(result.rrf_score).toFixed(4)}</span>
+              <span className="result-score">
+                {result.vector_similarity === null
+                  ? "Text match"
+                  : `COS ${Number(result.vector_similarity).toFixed(3)}`}
+              </span>
             </Link>
           ))}
         </section>
