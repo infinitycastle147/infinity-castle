@@ -21,4 +21,9 @@ describe("note attachments", () => {
     const markdown = `![Missing](attachment:${FIRST_ID})`;
     expect(() => assertAttachmentReferences(markdown, new Map())).toThrow(/do not have an attached file/);
   });
+
+  it("rejects attachment markers containing a malformed UUID", () => {
+    const markdown = "![Broken](attachment:00000000-0000-0000-0000-000000000000)";
+    expect(() => assertAttachmentReferences(markdown, new Map())).toThrow(/invalid attachment ID/);
+  });
 });

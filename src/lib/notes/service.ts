@@ -19,11 +19,12 @@ export async function saveMarkdownNote(input: {
     input.markdown,
     input.title === undefined ? {} : { title: input.title },
   );
-  if (input.noteId && parsed.sourceId && input.noteId !== parsed.sourceId) {
+  const routeNoteId = input.noteId?.toLowerCase();
+  if (routeNoteId && parsed.sourceId && routeNoteId !== parsed.sourceId) {
     throw new Error("The route note id and uploaded frontmatter id do not match");
   }
 
-  const requestedId = input.noteId ?? (input.ignoreSourceId ? undefined : parsed.sourceId);
+  const requestedId = routeNoteId ?? (input.ignoreSourceId ? undefined : parsed.sourceId);
   const contentHash = hashParsedNote(parsed);
   const check = await input.repository.checkUpload({
     ...(requestedId ? { id: requestedId } : {}),

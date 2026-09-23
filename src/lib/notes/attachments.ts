@@ -6,6 +6,7 @@ export const MAX_IMAGES_PER_NOTE = 24;
 
 const ATTACHMENT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ATTACHMENT_SOURCE_PATTERN = /!\[[^\]]*\]\(attachment:([0-9a-f-]{36})(?:\s+["'][^"']*["'])?\)/gi;
+const ANY_ATTACHMENT_SOURCE_PATTERN = /!\[[^\]]*\]\(attachment:([^\s)]+)(?:\s+["'][^"']*["'])?\)/gi;
 const ALLOWED_IMAGE_TYPES = new Map([
   ["image/gif", "gif"],
   ["image/jpeg", "jpg"],
@@ -51,6 +52,11 @@ export function assertAttachmentReferences(
   uploads: Map<string, File>,
   existingIds: Iterable<string> = [],
 ): void {
+  for (const match of markdown.matchAll(ANY_ATTACHMENT_SOURCE_PATTERN)) {
+    if (!match[1] || !isAttachmentId(match[1])) {
+      throw new Error("One or more image markers have an invalid attachment ID");
+    }
+  }
   const referencedIds = extractAttachmentIds(markdown);
   if (referencedIds.length > MAX_IMAGES_PER_NOTE) {
     throw new Error(`A note can contain at most ${MAX_IMAGES_PER_NOTE} images`);

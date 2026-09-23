@@ -44,15 +44,16 @@ export async function PUT(request: Request, context: RouteContext) {
       embedder: new GeminiEmbedder(),
       repository: new SupabaseProcessedNoteRepository(auth.supabase),
     });
-    if (result.status !== "confirmation_required") {
-      await syncNoteAttachments({
-        client: auth.supabase,
-        userId: auth.user.id,
-        noteId: result.noteId,
-        markdown: body.markdown,
-        uploads: body.attachments,
-      });
+    if (result.status === "confirmation_required") {
+      return NextResponse.json(result, { status: 409 });
     }
+    await syncNoteAttachments({
+      client: auth.supabase,
+      userId: auth.user.id,
+      noteId: result.noteId,
+      markdown: body.markdown,
+      uploads: body.attachments,
+    });
     return NextResponse.json(result);
   } catch (error) {
     return apiError(error, "Could not update note");

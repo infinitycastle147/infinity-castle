@@ -134,7 +134,7 @@ export function parseNote(
     contentMd: markdown,
     bodyMd: parsed.content,
     frontmatter,
-    ...(typeof rawSourceId === "string" ? { sourceId: rawSourceId } : {}),
+    ...(typeof rawSourceId === "string" ? { sourceId: rawSourceId.toLowerCase() } : {}),
     chunks: chunkMarkdown(parsed.content, title, maxChars),
     linkedTitles: extractLinkedTitles(parsed.content),
   };

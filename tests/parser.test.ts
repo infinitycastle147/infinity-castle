@@ -54,6 +54,18 @@ Second paragraph links to [[Courtyard#Fountain]].
     expect(hashParsedNote(windows)).toBe(hashParsedNote(unix));
   });
 
+  it("includes an editor-supplied title in the content hash", () => {
+    const first = parseNote("# Original\n\nBody.", { title: "First title" });
+    const second = parseNote("# Original\n\nBody.", { title: "Second title" });
+
+    expect(hashParsedNote(first)).not.toBe(hashParsedNote(second));
+  });
+
+  it("normalizes imported UUIDs before comparing them with route IDs", () => {
+    const note = parseNote("---\nid: AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA\n---\n# Test");
+    expect(note.sourceId).toBe("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+  });
+
   it("keeps attachment placement in Markdown but omits markers from embeddings", () => {
     const id = "55555555-5555-4555-8555-555555555555";
     const note = parseNote(`# Gallery\n\nBefore.\n\n![A room](attachment:${id})\n\nAfter.`);

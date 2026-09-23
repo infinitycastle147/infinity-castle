@@ -112,6 +112,22 @@ describe("note service", () => {
     }));
   });
 
+  it("compares route and frontmatter UUIDs case-insensitively", async () => {
+    const noteId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const repository: ProcessedNoteRepository = {
+      checkUpload: vi.fn(async (): Promise<UploadCheck> => ({ status: "unchanged", noteId })),
+      save: vi.fn(),
+    };
+
+    await expect(saveMarkdownNote({
+      noteId: noteId.toUpperCase(),
+      markdown: `---\nid: ${noteId}\n---\n# Test`,
+      embedder: { embed: vi.fn() },
+      repository,
+    })).resolves.toEqual({ status: "unchanged", noteId });
+    expect(repository.checkUpload).toHaveBeenCalledWith(expect.objectContaining({ id: noteId }));
+  });
+
   it("uses the retrieval-query task for search", async () => {
     const embedder: Embedder = {
       embed: vi.fn(async () => [[0.3, 0.4]]),

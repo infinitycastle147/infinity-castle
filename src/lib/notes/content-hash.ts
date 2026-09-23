@@ -29,6 +29,9 @@ export function hashParsedNote(note: ParsedNote): string {
     Object.entries(note.frontmatter).filter(([key]) => key !== "id"),
   );
   const canonicalContent = JSON.stringify({
+    // The effective title can come from the editor rather than frontmatter or
+    // an H1, so it must participate in identity and change detection.
+    title: note.title,
     frontmatter: canonicalize(contentFrontmatter),
     body: normalizeMarkdown(note.bodyMd),
   });
