@@ -162,6 +162,13 @@ a { color: inherit; text-decoration: none; }
 .result-title { margin: 0 0 5px; font-size: 14px; font-weight: 600; }
 .result-content { display: -webkit-box; overflow: hidden; margin: 0; color: var(--muted); -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .result-score { color: var(--moss); font-size: 9px; letter-spacing: .08em; }
+.search-empty { position: relative; min-height: 300px; margin-top: 27px; display: grid; place-content: center; justify-items: center; overflow: hidden; border: 1px solid var(--line); background: radial-gradient(circle at 50% 38%, rgba(213,168,78,.07), transparent 34%), rgba(7,13,10,.22); text-align: center; }
+.search-empty::before, .search-empty::after { content: ""; position: absolute; top: 50%; width: min(20%, 180px); height: 1px; background: linear-gradient(90deg, transparent, var(--line-bright)); }
+.search-empty::before { right: calc(50% + 78px); }
+.search-empty::after { left: calc(50% + 78px); transform: rotate(180deg); }
+.search-empty-glyph { display: block; margin-bottom: 12px; color: var(--brass); font-family: var(--display); font-size: 54px; line-height: .8; opacity: .72; }
+.search-empty h2 { margin: 12px 0 7px; color: var(--parchment); font-family: var(--display); font-size: clamp(30px, 5vw, 43px); font-weight: 400; line-height: 1; }
+.search-empty p { margin: 0; color: var(--muted); }
 .empty { min-height: 300px; display: grid; place-items: center; color: var(--muted); text-align: center; }
 .empty-glyph { display: block; margin-bottom: 8px; color: var(--line-bright); font-family: var(--display); font-size: 60px; line-height: 1; }
 

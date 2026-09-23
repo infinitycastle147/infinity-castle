@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Clock3, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
@@ -13,9 +13,7 @@ type SearchResult = {
   rrf_score: number;
 };
 
-export function SearchConsole({ recent }: {
-  recent: Array<{ id: string; title: string; updatedAt: string; updatedAtLabel: string }>;
-}) {
+export function SearchConsole() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -49,23 +47,7 @@ export function SearchConsole({ recent }: {
       </form>
       {error && <p className="notice error" role="alert">{error}</p>}
 
-      {results === null ? (
-        <section className="results" aria-label="Recently changed notes">
-          <span className="eyebrow"><Clock3 size={11} /> Recently mapped</span>
-          {recent.length ? recent.map((note, index) => (
-            <Link className="result-card" href={`/note/${note.id}`} key={note.id}>
-              <span className="result-rank">{String(index + 1).padStart(2, "0")}</span>
-              <div>
-                <h2 className="result-title">{note.title}</h2>
-                <p className="result-content">
-                  Updated <time dateTime={note.updatedAt}>{note.updatedAtLabel}</time>
-                </p>
-              </div>
-              <ArrowUpRight size={16} />
-            </Link>
-          )) : <EmptySearch copy="The archive is silent. Inscribe the first passage." />}
-        </section>
-      ) : results.length ? (
+      {results === null ? null : results.length ? (
         <section className="results" aria-live="polite">
           <span className="eyebrow">{results.length} echoes recovered</span>
           {results.map((result, index) => (
@@ -76,11 +58,18 @@ export function SearchConsole({ recent }: {
             </Link>
           ))}
         </section>
-      ) : <EmptySearch copy="No room answered. Try a broader phrase." />}
+      ) : <EmptySearch />}
     </>
   );
 }
 
-function EmptySearch({ copy }: { copy: string }) {
-  return <div className="empty"><div><span className="empty-glyph">⌁</span><p>{copy}</p></div></div>;
+function EmptySearch() {
+  return (
+    <div className="search-empty" role="status">
+      <span className="search-empty-glyph" aria-hidden="true">⌂</span>
+      <span className="eyebrow">The halls answer with silence</span>
+      <h2>Nothing found in the castle</h2>
+      <p>Try another phrase, fewer words, or a nearby idea.</p>
+    </div>
+  );
 }
