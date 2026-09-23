@@ -6,6 +6,7 @@ const WIKILINK_PATTERN = /\[\[([^\[\]]+?)\]\]/g;
 const HEADING_PATTERN = /^(#{1,6})\s+(.+?)\s*#*\s*$/;
 const DEFAULT_MAX_CHUNK_CHARS = 1800;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const ATTACHMENT_IMAGE_PATTERN = /!\[[^\]]*\]\(attachment:[0-9a-f-]{36}(?:\s+["'][^"']*["'])?\)/gi;
 
 function inferTitle(content: string, frontmatter: Record<string, unknown>): string {
   if (typeof frontmatter.title === "string" && frontmatter.title.trim()) {
@@ -60,6 +61,9 @@ function splitLongText(text: string, maxChars: number): string[] {
 }
 
 function chunkMarkdown(content: string, title: string, maxChars: number): string[] {
+  // Positional attachment markers belong in the note but carry no useful text
+  // for semantic search, so they never enter the embedding input.
+  content = content.replace(ATTACHMENT_IMAGE_PATTERN, "");
   const chunks: string[] = [];
   const headingStack: string[] = [];
   let paragraph: string[] = [];

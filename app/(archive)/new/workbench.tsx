@@ -4,6 +4,8 @@ import { FileUp, ScrollText, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DragEvent, FormEvent, useRef, useState } from "react";
 
+import { MarkdownImageEditor, PendingImage } from "../../../src/components/markdown-image-editor";
+
 type Conflict = { reason: string; noteId?: string };
 
 export function NewNoteWorkbench() {
@@ -13,6 +15,7 @@ export function NewNoteWorkbench() {
   const [title, setTitle] = useState("");
   const [markdown, setMarkdown] = useState("");
   const [filename, setFilename] = useState("");
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -42,14 +45,16 @@ export function NewNoteWorkbench() {
     setError("");
     setConflict(null);
     try {
+      const form = new FormData();
+      form.set("markdown", markdown);
+      if (title.trim()) form.set("title", title.trim());
+      if (options.replaceExisting) form.set("replaceExisting", "true");
+      if (options.createAsNew) form.set("createAsNew", "true");
+      for (const image of pendingImages) form.set(`attachment:${image.id}`, image.file);
+
       const response = await fetch("/api/notes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          markdown,
-          ...(title.trim() ? { title: title.trim() } : {}),
-          ...options,
-        }),
+        body: form,
       });
       const payload = await response.json();
       if (response.status === 409) {
@@ -105,11 +110,14 @@ export function NewNoteWorkbench() {
             <label htmlFor="title">Title <span className="note-meta">· optional with frontmatter or H1</span></label>
             <input className="input" id="title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="The room at the end of the hall" />
           </div>
-          <div className="field">
-            <label htmlFor="markdown">Markdown</label>
-            <textarea className="textarea" id="markdown" spellCheck="true" value={markdown}
-              onChange={(event) => setMarkdown(event.target.value)} placeholder={"# A new passage\n\nBegin here. Open a door to [[Another Note]]."} />
-          </div>
+          <MarkdownImageEditor
+            id="markdown"
+            markdown={markdown}
+            onMarkdownChange={setMarkdown}
+            pendingImages={pendingImages}
+            onPendingImagesChange={setPendingImages}
+            onError={setError}
+          />
           {error && <p className="notice error" role="alert">{error}</p>}
           <div className="action-row">
             <span className="note-meta"><ScrollText size={12} /> {markdown.length.toLocaleString()} glyphs</span>

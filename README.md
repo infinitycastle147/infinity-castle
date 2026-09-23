@@ -7,6 +7,7 @@ Built with Next.js, Supabase (Postgres + pgvector), and Google Gemini embeddings
 ## Features
 
 - Markdown note creation, import, editing, export, and deletion
+- Positional image attachments backed by private object storage and signed URLs
 - Frontmatter, heading/paragraph chunking, and wikilink parsing
 - Hybrid semantic and full-text search with reciprocal-rank fusion
 - Interactive force-directed graph of linked notes

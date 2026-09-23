@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { createClient } from "../../../../src/lib/supabase/server";
+import { getSignedNoteAttachments } from "../../../../src/lib/notes/attachments";
 import { NoteWorkbench } from "./workbench";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -24,6 +25,7 @@ export default async function NotePage({ params }: PageProps) {
   if (error || !data) notFound();
 
   const updatedAt = String(data.updated_at);
+  const attachments = await getSignedNoteAttachments(supabase, id);
 
   return (
     <div className="page">
@@ -34,7 +36,11 @@ export default async function NotePage({ params }: PageProps) {
         createdAt: String(data.created_at),
         updatedAt,
         updatedAtLabel: new Date(updatedAt).toLocaleString(),
-      }} />
+      }} attachments={attachments.map((attachment) => ({
+        id: attachment.id,
+        fileName: attachment.fileName,
+        url: attachment.signedUrl ?? "",
+      }))} />
     </div>
   );
 }

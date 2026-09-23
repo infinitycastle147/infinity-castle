@@ -53,4 +53,13 @@ Second paragraph links to [[Courtyard#Fountain]].
     const windows = parseNote("# Test  \r\n\r\nBody.  \r\n");
     expect(hashParsedNote(windows)).toBe(hashParsedNote(unix));
   });
+
+  it("keeps attachment placement in Markdown but omits markers from embeddings", () => {
+    const id = "55555555-5555-4555-8555-555555555555";
+    const note = parseNote(`# Gallery\n\nBefore.\n\n![A room](attachment:${id})\n\nAfter.`);
+
+    expect(note.contentMd).toContain(`attachment:${id}`);
+    expect(note.chunks.join("\n")).not.toContain("attachment:");
+    expect(note.chunks).toEqual(["Gallery\n\nBefore.", "Gallery\n\nAfter."]);
+  });
 });

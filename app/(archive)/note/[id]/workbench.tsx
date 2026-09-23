@@ -3,8 +3,9 @@
 import { Download, Pencil, Save, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+
+import { MarkdownImageEditor, PendingImage } from "../../../../src/components/markdown-image-editor";
+import { DisplayAttachment, NoteMarkdown } from "../../../../src/components/note-markdown";
 
 type Note = {
   id: string;
@@ -15,15 +16,12 @@ type Note = {
   updatedAtLabel: string;
 };
 
-function displayMarkdown(markdown: string) {
-  return markdown.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, "");
-}
-
-export function NoteWorkbench({ note }: { note: Note }) {
+export function NoteWorkbench({ note, attachments }: { note: Note; attachments: DisplayAttachment[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(note.title);
   const [markdown, setMarkdown] = useState(note.contentMd);
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -31,14 +29,18 @@ export function NoteWorkbench({ note }: { note: Note }) {
   async function save() {
     setBusy(true); setError("");
     try {
+      const form = new FormData();
+      form.set("title", title);
+      form.set("markdown", markdown);
+      for (const image of pendingImages) form.set(`attachment:${image.id}`, image.file);
       const response = await fetch(`/api/notes/${note.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, markdown }),
+        body: form,
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Could not save the note.");
       setEditing(false);
+      setPendingImages([]);
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not save the note.");
@@ -84,12 +86,20 @@ export function NoteWorkbench({ note }: { note: Note }) {
         {editing ? (
           <div className="panel-body">
             <div className="field"><label htmlFor="note-title">Title</label><input className="input" id="note-title" value={title} onChange={(event) => setTitle(event.target.value)} /></div>
-            <div className="field"><label htmlFor="note-markdown">Markdown</label><textarea className="textarea" id="note-markdown" value={markdown} onChange={(event) => setMarkdown(event.target.value)} /></div>
+            <MarkdownImageEditor
+              id="note-markdown"
+              markdown={markdown}
+              onMarkdownChange={setMarkdown}
+              pendingImages={pendingImages}
+              onPendingImagesChange={setPendingImages}
+              onError={setError}
+              existingAttachments={attachments}
+            />
             {error && <p className="notice error" role="alert">{error}</p>}
             <div className="action-row"><span className="note-meta">Saving rebuilds this passage&apos;s search memory.</span><button className="button primary" disabled={busy} onClick={() => void save()} type="button">{busy ? <><span className="spinner" />Re-mapping…</> : <><Save />Save passage</>}</button></div>
           </div>
         ) : (
-          <article className="reader markdown"><Markdown remarkPlugins={[remarkGfm]}>{displayMarkdown(markdown)}</Markdown></article>
+          <article className="reader markdown"><NoteMarkdown markdown={markdown} attachments={attachments} /></article>
         )}
       </section>
 
