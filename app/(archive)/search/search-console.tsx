@@ -49,9 +49,9 @@ export function SearchConsole() {
 
       {results === null ? null : results.length ? (
         <section className="results" aria-live="polite">
-          <span className="eyebrow">{results.length} echoes recovered</span>
+          <span className="eyebrow">{results.length} pages recovered</span>
           {results.map((result, index) => (
-            <Link className="result-card" href={`/note/${result.note_id}`} key={result.chunk_id}>
+            <Link className="result-card" href={`/note/${result.note_id}`} key={result.note_id}>
               <span className="result-rank">{String(index + 1).padStart(2, "0")}</span>
               <div><h2 className="result-title">{result.title}</h2><p className="result-content">{result.content}</p></div>
               <span className="result-score">

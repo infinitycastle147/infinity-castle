@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 
 import { apiError, authenticatedClient } from "../../../src/lib/api";
 import { GeminiEmbedder } from "../../../src/lib/notes/gemini-embedder";
-import { semanticMatchThreshold } from "../../../src/lib/notes/search-policy";
+import {
+  semanticMatchThreshold,
+  uniquePageResults,
+} from "../../../src/lib/notes/search-policy";
 import { embedSearchQuery } from "../../../src/lib/notes/service";
 
 export const runtime = "nodejs";
@@ -30,7 +33,7 @@ export async function POST(request: Request) {
       rrf_k: 60,
     });
     if (error) throw error;
-    return NextResponse.json({ results: data ?? [] });
+    return NextResponse.json({ results: uniquePageResults(data ?? []) });
   } catch (error) {
     return apiError(error, "Search failed");
   }
