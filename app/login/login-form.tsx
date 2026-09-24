@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound } from "lucide-react";
+import { Eye, EyeOff, KeyRound } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 
@@ -10,42 +10,32 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
-  const [sentEmail, setSentEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [state, setState] = useState<"idle" | "sending" | "code" | "verifying">("idle");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState("");
 
-  async function sendOtp() {
+  async function submit(event: FormEvent) {
+    event.preventDefault();
     setError("");
-    setState("sending");
-    const normalizedEmail = email.trim();
-    const { error: authError } = await createClient().auth.signInWithOtp({
-      email: normalizedEmail,
-      options: { shouldCreateUser: false },
+    setIsSigningIn(true);
+
+    const { data, error: authError } = await createClient().auth.signInWithPassword({
+      email: email.trim(),
+      password,
     });
 
     if (authError) {
-      setError(authError.message);
-      setState("idle");
+      setError(authError.code === "invalid_credentials"
+        ? "The email or password is incorrect."
+        : authError.message);
+      setIsSigningIn(false);
       return;
     }
-    setSentEmail(normalizedEmail);
-    setOtp("");
-    setState("code");
-  }
 
-  async function verifyOtp() {
-    setError("");
-    setState("verifying");
-    const { error: authError } = await createClient().auth.verifyOtp({
-      email: sentEmail,
-      token: otp,
-      type: "email",
-    });
-
-    if (authError) {
-      setError(authError.message);
-      setState("code");
+    if (!data.session) {
+      setError("Sign-in succeeded, but no session was created. Please try again.");
+      setIsSigningIn(false);
       return;
     }
 
@@ -57,53 +47,36 @@ export function LoginForm() {
     router.refresh();
   }
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (state === "code") await verifyOtp();
-    else if (state === "idle") await sendOtp();
-  }
-
-  function changeEmail() {
-    setError("");
-    setOtp("");
-    setSentEmail("");
-    setState("idle");
-  }
-
   return (
-    <form className="login-form" onSubmit={submit}>
+    <form className="login-form" onSubmit={submit} aria-busy={isSigningIn}>
       <span className="eyebrow">Authorized keeper only</span>
       <h2>Open the gate</h2>
-      <p>
-        {state === "code" || state === "verifying"
-          ? `Enter the one-time code sent to ${sentEmail}.`
-          : "No password. A one-time code will arrive in your inbox."}
-      </p>
+      <p>Enter your keeper credentials. No email or external mail provider is required.</p>
       <div className="field">
         <label htmlFor="email">Keeper address</label>
         <input className="input" id="email" type="email" autoComplete="email" required
-          placeholder="you@domain.com" value={email} disabled={state !== "idle"}
+          placeholder="you@domain.com" value={email} disabled={isSigningIn}
           onChange={(event) => setEmail(event.target.value)} />
       </div>
-      {(state === "code" || state === "verifying") && (
-        <div className="field otp-field">
-          <label htmlFor="otp">One-time code</label>
-          <input className="input" id="otp" type="text" inputMode="numeric" autoComplete="one-time-code"
-            minLength={6} maxLength={10} pattern="[0-9]{6,10}" required autoFocus
-            placeholder="123456" value={otp}
-            onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 10))} />
-        </div>
-      )}
-      {error && <p className="notice error" role="alert">{error}</p>}
-      {state === "code" && <p className="notice success" role="status">Code sent. Check your inbox.</p>}
-      <div className="action-row">
-        {state === "code" || state === "verifying" ? (
-          <button className="button quiet" disabled={state === "verifying"} type="button" onClick={changeEmail}>
-            Change email
+      <div className="field">
+        <label htmlFor="password">Password</label>
+        <div className="password-input">
+          <input className="input" id="password" type={showPassword ? "text" : "password"}
+            autoComplete="current-password" required disabled={isSigningIn}
+            placeholder="Enter your password" value={password}
+            onChange={(event) => setPassword(event.target.value)} />
+          <button type="button" disabled={isSigningIn} aria-pressed={showPassword}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            onClick={() => setShowPassword((visible) => !visible)}>
+            {showPassword ? <EyeOff /> : <Eye />}
           </button>
-        ) : <span className="note-meta">Signup is sealed</span>}
-        <button className="button primary" disabled={state === "sending" || state === "verifying"} type="submit">
-          <KeyRound /> {state === "sending" ? "Sending…" : state === "verifying" ? "Verifying…" : state === "code" ? "Verify code" : "Send code"}
+        </div>
+      </div>
+      {error && <p className="notice error" role="alert">{error}</p>}
+      <div className="action-row">
+        <span className="note-meta">Signup is sealed</span>
+        <button className="button primary" disabled={isSigningIn} type="submit">
+          <KeyRound /> {isSigningIn ? "Opening…" : "Sign in"}
         </button>
       </div>
     </form>

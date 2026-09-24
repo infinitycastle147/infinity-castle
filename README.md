@@ -70,9 +70,9 @@ Never commit `.env` or `.env.local`. They are intentionally ignored; use `.env.e
 ## Supabase configuration
 
 1. Run the migrations in `supabase/migrations` in filename order.
-2. In **Authentication → Providers → Email**, disable new-user signup and enable email OTP login.
-3. Create the permitted user manually in **Authentication → Users**.
-4. In **Authentication → Email Templates → Magic Link**, replace the confirmation-link URL with the OTP token. For example: `<p>Your login code is: {{ .Token }}</p>`. Supabase uses this template for both magic links and email OTPs; including `{{ .Token }}` makes the email contain the code entered on `/login`.
+2. In **Authentication → Providers → Email**, enable email/password authentication and disable new-user signup.
+3. In **Authentication → Users**, choose **Add user → Create new user**. Enter the permitted email address and a strong password, and mark the user as email-confirmed so login does not require an email message.
+4. Keep the password somewhere secure. Normal sign-in does not use SMTP, and the application does not expose signup or password-reset flows.
 
 The included RLS policies allow the `authenticated` role, on the assumption that this is a single-user deployment with signup disabled. Add ownership columns and adjust policies before turning it into a multi-user product.
 
