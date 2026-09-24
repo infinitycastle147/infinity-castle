@@ -1,26 +1,27 @@
 "use client";
 
 import { KeyRound } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 import { createClient } from "../../src/lib/supabase/client";
 
 export function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
-  const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+  const [sentEmail, setSentEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [state, setState] = useState<"idle" | "sending" | "code" | "verifying">("idle");
   const [error, setError] = useState("");
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
+  async function sendOtp() {
     setError("");
     setState("sending");
-    const next = searchParams.get("next")?.startsWith("/") ? searchParams.get("next")! : "/search";
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+    const normalizedEmail = email.trim();
     const { error: authError } = await createClient().auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirectTo, shouldCreateUser: false },
+      email: normalizedEmail,
+      options: { shouldCreateUser: false },
     });
 
     if (authError) {
@@ -28,25 +29,81 @@ export function LoginForm() {
       setState("idle");
       return;
     }
-    setState("sent");
+    setSentEmail(normalizedEmail);
+    setOtp("");
+    setState("code");
+  }
+
+  async function verifyOtp() {
+    setError("");
+    setState("verifying");
+    const { error: authError } = await createClient().auth.verifyOtp({
+      email: sentEmail,
+      token: otp,
+      type: "email",
+    });
+
+    if (authError) {
+      setError(authError.message);
+      setState("code");
+      return;
+    }
+
+    const requestedNext = searchParams.get("next");
+    const next = requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
+      ? requestedNext
+      : "/search";
+    router.replace(next);
+    router.refresh();
+  }
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (state === "code") await verifyOtp();
+    else if (state === "idle") await sendOtp();
+  }
+
+  function changeEmail() {
+    setError("");
+    setOtp("");
+    setSentEmail("");
+    setState("idle");
   }
 
   return (
     <form className="login-form" onSubmit={submit}>
       <span className="eyebrow">Authorized keeper only</span>
       <h2>Open the gate</h2>
-      <p>No password. A one-use passage will arrive in your inbox.</p>
+      <p>
+        {state === "code" || state === "verifying"
+          ? `Enter the one-time code sent to ${sentEmail}.`
+          : "No password. A one-time code will arrive in your inbox."}
+      </p>
       <div className="field">
         <label htmlFor="email">Keeper address</label>
         <input className="input" id="email" type="email" autoComplete="email" required
-          placeholder="you@domain.com" value={email} onChange={(event) => setEmail(event.target.value)} />
+          placeholder="you@domain.com" value={email} disabled={state !== "idle"}
+          onChange={(event) => setEmail(event.target.value)} />
       </div>
+      {(state === "code" || state === "verifying") && (
+        <div className="field otp-field">
+          <label htmlFor="otp">One-time code</label>
+          <input className="input" id="otp" type="text" inputMode="numeric" autoComplete="one-time-code"
+            minLength={6} maxLength={10} pattern="[0-9]{6,10}" required autoFocus
+            placeholder="123456" value={otp}
+            onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 10))} />
+        </div>
+      )}
       {error && <p className="notice error" role="alert">{error}</p>}
-      {state === "sent" && <p className="notice success" role="status">Passage sent. Check your inbox.</p>}
+      {state === "code" && <p className="notice success" role="status">Code sent. Check your inbox.</p>}
       <div className="action-row">
-        <span className="note-meta">Signup is sealed</span>
-        <button className="button primary" disabled={state !== "idle"} type="submit">
-          <KeyRound /> {state === "sending" ? "Sending…" : state === "sent" ? "Sent" : "Send passage"}
+        {state === "code" || state === "verifying" ? (
+          <button className="button quiet" disabled={state === "verifying"} type="button" onClick={changeEmail}>
+            Change email
+          </button>
+        ) : <span className="note-meta">Signup is sealed</span>}
+        <button className="button primary" disabled={state === "sending" || state === "verifying"} type="submit">
+          <KeyRound /> {state === "sending" ? "Sending…" : state === "verifying" ? "Verifying…" : state === "code" ? "Verify code" : "Send code"}
         </button>
       </div>
     </form>
