@@ -42,7 +42,7 @@ export function LoginForm() {
     const requestedNext = searchParams.get("next");
     const next = requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
       ? requestedNext
-      : "/search";
+      : "/graph";
     router.replace(next);
     router.refresh();
   }

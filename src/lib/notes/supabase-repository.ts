@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type {
-  ProcessedNoteRepository,
+  NoteRepository,
   UploadCheck,
   UploadCheckStatus,
 } from "./types";
@@ -15,11 +15,11 @@ const UPLOAD_STATUSES = new Set<UploadCheckStatus>([
   "id_not_found",
 ]);
 
-export class SupabaseProcessedNoteRepository implements ProcessedNoteRepository {
+export class SupabaseNoteRepository implements NoteRepository {
   constructor(private readonly client: SupabaseClient) {}
 
   async checkUpload(
-    input: Parameters<ProcessedNoteRepository["checkUpload"]>[0],
+    input: Parameters<NoteRepository["checkUpload"]>[0],
   ): Promise<UploadCheck> {
     const { data, error } = await this.client.rpc("check_note_upload", {
       candidate_note_id: input.id ?? null,
@@ -43,12 +43,11 @@ export class SupabaseProcessedNoteRepository implements ProcessedNoteRepository 
     };
   }
 
-  async save(input: Parameters<ProcessedNoteRepository["save"]>[0]): Promise<string> {
-    const { data, error } = await this.client.rpc("save_processed_note", {
+  async save(input: Parameters<NoteRepository["save"]>[0]): Promise<string> {
+    const { data, error } = await this.client.rpc("save_note", {
       note_title: input.title,
       note_content_md: input.contentMd,
       note_content_hash: input.contentHash,
-      note_chunks: input.chunks,
       linked_titles: input.linkedTitles,
       existing_note_id: input.id ?? null,
       allow_replacement: input.allowReplacement,

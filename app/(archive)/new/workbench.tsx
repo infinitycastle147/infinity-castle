@@ -85,8 +85,8 @@ export function NewNoteWorkbench() {
   const conflictCopy = conflict?.reason === "id_not_found"
     ? "This file remembers a note ID that no longer exists here. Import it as a new memory with a fresh ID?"
     : conflict?.reason === "title_match_unchanged"
-      ? "A note with this title and content already exists. Confirming will open it without re-embedding."
-      : "A note already occupies this identity or title. Replace its content and rebuild its search memory?";
+      ? "A note with this title and content already exists. Confirming will open it."
+      : "A note already occupies this identity or title. Replace its content?";
 
   return (
     <>
@@ -122,7 +122,7 @@ export function NewNoteWorkbench() {
           <div className="action-row">
             <span className="note-meta"><ScrollText size={12} /> {markdown.length.toLocaleString()} glyphs</span>
             <button className="button primary" disabled={busy} type="submit">
-              {busy ? <><span className="spinner" />Mapping…</> : <><Sparkles />Commit memory</>}
+              {busy ? <><span className="spinner" />Saving…</> : <><Sparkles />Save note</>}
             </button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 
-import { Archive, Map, Search, SquarePen } from "lucide-react";
+import { Archive, Map, SquarePen } from "lucide-react";
 
 import { NavLink } from "./nav-link";
 import { SignOutButton } from "./sign-out-button";
@@ -22,7 +22,6 @@ export function AppShell({ children, user, noteCount }: {
         </div>
         <span className="nav-label">Choose a chamber</span>
         <nav className="nav-list" aria-label="Primary navigation">
-          <NavLink href="/search" label="Seek" icon={<Search />} />
           <NavLink href="/new" label="Inscribe" icon={<SquarePen />} />
           <NavLink href="/graph" label="Atlas" icon={<Map />} />
         </nav>

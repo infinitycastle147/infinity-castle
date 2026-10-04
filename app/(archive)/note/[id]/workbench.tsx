@@ -55,7 +55,7 @@ export function NoteWorkbench({ note, attachments }: { note: Note; attachments: 
         const payload = await response.json();
         throw new Error(payload.error ?? "Could not delete the note.");
       }
-      router.push("/search");
+      router.push("/graph");
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not delete the note.");
@@ -96,7 +96,7 @@ export function NoteWorkbench({ note, attachments }: { note: Note; attachments: 
               existingAttachments={attachments}
             />
             {error && <p className="notice error" role="alert">{error}</p>}
-            <div className="action-row"><span className="note-meta">Saving rebuilds this passage&apos;s search memory.</span><button className="button primary" disabled={busy} onClick={() => void save()} type="button">{busy ? <><span className="spinner" />Re-mapping…</> : <><Save />Save passage</>}</button></div>
+            <div className="action-row"><span className="note-meta">Wikilinks update the atlas automatically.</span><button className="button primary" disabled={busy} onClick={() => void save()} type="button">{busy ? <><span className="spinner" />Saving…</> : <><Save />Save passage</>}</button></div>
           </div>
         ) : (
           <article className="reader markdown"><NoteMarkdown markdown={markdown} attachments={attachments} /></article>
@@ -107,7 +107,7 @@ export function NoteWorkbench({ note, attachments }: { note: Note; attachments: 
         <div className="modal-backdrop">
           <section className="modal" role="dialog" aria-modal="true" aria-labelledby="delete-title">
             <span className="eyebrow">Permanent action</span><h2 id="delete-title">Unmake this room?</h2>
-            <p>The note, its embedded fragments, and every connected edge will be removed.</p>
+            <p>The note, its image attachments, and every connected edge will be removed.</p>
             <div className="action-row"><button className="button quiet" onClick={() => setConfirmDelete(false)} type="button">Return</button><button className="button danger" disabled={busy} onClick={() => void remove()} type="button">Delete forever</button></div>
           </section>
         </div>

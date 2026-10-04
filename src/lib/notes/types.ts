@@ -1,27 +1,13 @@
-export const EMBEDDING_DIMENSIONS = 1536;
-
-export type EmbeddingTask = "document" | "query";
-
 export interface ParsedNote {
   title: string;
   contentMd: string;
   bodyMd: string;
   frontmatter: Record<string, unknown>;
   sourceId?: string;
-  chunks: string[];
   linkedTitles: string[];
 }
 
-export interface EmbeddedChunk {
-  content: string;
-  embedding: number[];
-}
-
-export interface Embedder {
-  embed(texts: string[], task: EmbeddingTask): Promise<number[][]>;
-}
-
-export interface ProcessedNoteRepository {
+export interface NoteRepository {
   checkUpload(input: {
     id?: string;
     title: string;
@@ -32,7 +18,6 @@ export interface ProcessedNoteRepository {
     title: string;
     contentMd: string;
     contentHash: string;
-    chunks: EmbeddedChunk[];
     linkedTitles: string[];
     allowReplacement: boolean;
     expectedPreviousHash?: string;

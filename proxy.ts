@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getSupabaseEnv } from "./src/lib/supabase/env";
 
-const protectedPrefixes = ["/new", "/note", "/search", "/graph", "/api"];
+const protectedPrefixes = ["/new", "/note", "/graph", "/api"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -36,7 +36,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (request.nextUrl.pathname === "/login" && data.user) {
-    return NextResponse.redirect(new URL("/search", request.url));
+    return NextResponse.redirect(new URL("/graph", request.url));
   }
 
   return response;

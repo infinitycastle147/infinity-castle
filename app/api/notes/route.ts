@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { GeminiEmbedder } from "../../../src/lib/notes/gemini-embedder";
 import { saveMarkdownNote } from "../../../src/lib/notes/service";
-import { SupabaseProcessedNoteRepository } from "../../../src/lib/notes/supabase-repository";
+import { SupabaseNoteRepository } from "../../../src/lib/notes/supabase-repository";
 import { assertAttachmentReferences, syncNoteAttachments } from "../../../src/lib/notes/attachments";
 import { readNoteRequest } from "../../../src/lib/notes/request";
 import { apiError, authenticatedClient } from "../../../src/lib/api";
@@ -28,8 +27,7 @@ export async function POST(request: Request) {
       ...(body.title ? { title: body.title } : {}),
       replaceExisting: body.replaceExisting,
       ignoreSourceId: body.createAsNew,
-      embedder: new GeminiEmbedder(),
-      repository: new SupabaseProcessedNoteRepository(auth.supabase),
+      repository: new SupabaseNoteRepository(auth.supabase),
     });
 
     if (result.status === "confirmation_required") {

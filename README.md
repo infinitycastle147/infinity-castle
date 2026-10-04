@@ -1,33 +1,30 @@
 # Infinity Castle
 
-Infinity Castle is a private, single-user Markdown knowledge base with a retro archive-terminal interface. Create or import notes, connect them with wikilinks, search with hybrid semantic and full-text retrieval, and explore the resulting knowledge graph.
+Infinity Castle is a private, single-user Markdown knowledge base with a retro archive-terminal interface. Create or import notes, edit and export them, connect them with wikilinks, and explore the resulting knowledge graph.
 
-Built with Next.js, Supabase (Postgres + pgvector), and Google Gemini embeddings.
+Built with Next.js and Supabase Postgres.
 
 ## Features
 
 - Markdown note creation, import, editing, export, and deletion
 - Positional image attachments backed by private object storage and signed URLs
-- Frontmatter, heading/paragraph chunking, and wikilink parsing
-- Hybrid semantic and full-text search with reciprocal-rank fusion
+- Frontmatter and wikilink parsing
 - Interactive force-directed graph of linked notes
 - UUID and SHA-256–based duplicate/re-upload protection
-- Atomic note, chunk, and edge replacement in Supabase
+- Atomic note and graph-edge replacement in Supabase
 - Email OTP / magic-link authentication with server-side session refresh
 - Row-level security for authenticated requests
 
 ## Tech stack
 
 - Next.js 16, React 19, and TypeScript
-- Supabase Postgres, pgvector, and Auth
-- Google Gemini (`gemini-embedding-001`) embeddings
+- Supabase Postgres and Auth
 - Vitest and ESLint
 
 ## Prerequisites
 
 - Node.js 20.9 or later
-- A Supabase project with the `vector` extension available
-- A Google AI Studio API key with access to Gemini embeddings
+- A Supabase project
 
 ## Getting started
 
@@ -61,7 +58,6 @@ Built with Next.js, Supabase (Postgres + pgvector), and Google Gemini embeddings
 
 | Variable | Purpose |
 | --- | --- |
-| `GEMINI_API_KEY` | Server-only Google Gemini API key used to generate embeddings. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client-safe Supabase publishable/anon key. |
 
@@ -83,7 +79,6 @@ The included RLS policies allow the `authenticated` role, on the assumption that
 | `/login` | Email authentication |
 | `/new` | Create or import a note |
 | `/note/[id]` | Read, edit, export, or delete a note |
-| `/search` | Hybrid search console |
 | `/graph` | Linked-note graph |
 
 The API route handlers are located in `app/api`.
@@ -100,7 +95,7 @@ npm run build
 ## Re-upload behavior
 
 - Exported notes carry a stable `id` UUID in frontmatter.
-- An unchanged UUID/hash pair returns `unchanged` without creating new embeddings.
+- An unchanged UUID/hash pair returns `unchanged` without rewriting the note.
 - Changed content with an existing UUID requires explicit replacement confirmation.
 - A matching title without a UUID also requires confirmation; titles and hashes are never silently treated as identity.
 - Confirmed replacement checks the previous hash again inside the transaction, avoiding concurrent-edit overwrites.
@@ -109,7 +104,7 @@ npm run build
 
 ```text
 app/                    Next.js pages and API routes
-src/lib/notes/          Parsing, embedding, hashing, and persistence logic
+src/lib/notes/          Parsing, hashing, attachments, and persistence logic
 supabase/migrations/    Database schema, indexes, RPCs, and RLS policies
 tests/                  Parser and note-service tests
 ```

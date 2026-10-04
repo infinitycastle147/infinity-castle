@@ -1,10 +1,6 @@
 import { hashParsedNote } from "./content-hash";
 import { parseNote } from "./parser";
-import type {
-  Embedder,
-  ProcessedNoteRepository,
-  SaveMarkdownResult,
-} from "./types";
+import type { NoteRepository, SaveMarkdownResult } from "./types";
 
 export async function saveMarkdownNote(input: {
   markdown: string;
@@ -12,8 +8,7 @@ export async function saveMarkdownNote(input: {
   noteId?: string;
   replaceExisting?: boolean;
   ignoreSourceId?: boolean;
-  embedder: Embedder;
-  repository: ProcessedNoteRepository;
+  repository: NoteRepository;
 }): Promise<SaveMarkdownResult> {
   const parsed = parseNote(
     input.markdown,
@@ -57,18 +52,11 @@ export async function saveMarkdownNote(input: {
     throw new Error("Upload check did not return the replacement note id");
   }
 
-  const embeddings = await input.embedder.embed(parsed.chunks, "document");
-
   const noteId = await input.repository.save({
     ...(replacementId ? { id: replacementId } : {}),
     title: parsed.title,
     contentMd: parsed.contentMd,
     contentHash,
-    chunks: parsed.chunks.map((content, index) => {
-      const embedding = embeddings[index];
-      if (!embedding) throw new Error(`Missing embedding for chunk ${index}`);
-      return { content, embedding };
-    }),
     linkedTitles: parsed.linkedTitles,
     allowReplacement: Boolean(replacementId),
     ...(check.currentContentHash
@@ -77,12 +65,4 @@ export async function saveMarkdownNote(input: {
   });
 
   return { status: replacementId ? "replaced" : "created", noteId };
-}
-
-export async function embedSearchQuery(query: string, embedder: Embedder): Promise<number[]> {
-  const normalized = query.trim();
-  if (!normalized) throw new Error("Search query cannot be empty");
-  const [embedding] = await embedder.embed([normalized], "query");
-  if (!embedding) throw new Error("Missing query embedding");
-  return embedding;
 }

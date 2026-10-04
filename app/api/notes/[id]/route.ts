@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { apiError, authenticatedClient } from "../../../../src/lib/api";
-import { GeminiEmbedder } from "../../../../src/lib/notes/gemini-embedder";
 import { saveMarkdownNote } from "../../../../src/lib/notes/service";
-import { SupabaseProcessedNoteRepository } from "../../../../src/lib/notes/supabase-repository";
+import { SupabaseNoteRepository } from "../../../../src/lib/notes/supabase-repository";
 import {
   assertAttachmentReferences,
   getNoteAttachments,
@@ -41,8 +40,7 @@ export async function PUT(request: Request, context: RouteContext) {
       markdown: body.markdown,
       ...(body.title ? { title: body.title } : {}),
       replaceExisting: true,
-      embedder: new GeminiEmbedder(),
-      repository: new SupabaseProcessedNoteRepository(auth.supabase),
+      repository: new SupabaseNoteRepository(auth.supabase),
     });
     if (result.status === "confirmation_required") {
       return NextResponse.json(result, { status: 409 });
