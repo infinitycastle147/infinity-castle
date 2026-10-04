@@ -11,7 +11,7 @@ export function NavLink({ href, label, icon }: {
   const pathname = usePathname();
   const active = pathname === href || pathname.startsWith(`${href}/`);
   return (
-    <Link className={`nav-link${active ? " active" : ""}`} href={href}>
+    <Link className={`nav-link${active ? " active" : ""}`} href={href} aria-label={label} aria-current={active ? "page" : undefined} title={label}>
       {icon}<span>{label}</span>
     </Link>
   );

@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getSupabaseEnv } from "./src/lib/supabase/env";
 
-const protectedPrefixes = ["/new", "/note", "/graph", "/api"];
+const protectedPrefixes = ["/new", "/note", "/graph", "/pages", "/api"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

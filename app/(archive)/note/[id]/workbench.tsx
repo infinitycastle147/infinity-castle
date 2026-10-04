@@ -1,6 +1,7 @@
 "use client";
 
-import { Download, Pencil, Save, Trash2, X } from "lucide-react";
+import { ArrowLeft, Download, Network, Pencil, Save, Trash2, X } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -65,6 +66,10 @@ export function NoteWorkbench({ note, attachments }: { note: Note; attachments: 
 
   return (
     <>
+      <nav className="reader-breadcrumb" aria-label="Page navigation">
+        <Link href="/pages"><ArrowLeft size={13} /> All pages</Link>
+        <Link href={`/graph?note=${encodeURIComponent(note.id)}`}><Network size={13} /> View in atlas</Link>
+      </nav>
       <header className="page-head">
         <div>
           <span className="eyebrow">Memory · {note.id.slice(0, 8)}</span>

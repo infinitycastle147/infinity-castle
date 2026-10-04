@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 
-import { createClient } from "../../../src/lib/supabase/server";
+import { ArchiveViews } from "../../../src/components/archive-views";
+import { getArchive } from "../../../src/lib/notes/archive";
 import { GraphCanvas } from "./graph-canvas";
 
 export const metadata: Metadata = { title: "Atlas" };
 
-export default async function GraphPage() {
-  const supabase = await createClient();
-  const [{ data: notes }, { data: edges }] = await Promise.all([
-    supabase.from("notes").select("id, title").order("title"),
-    supabase.from("edges").select("note_id, linked_note_id"),
-  ]);
+export default async function GraphPage({ searchParams }: { searchParams: Promise<{ note?: string }> }) {
+  const [{ pages, edges }, { note }] = await Promise.all([getArchive(), searchParams]);
 
   return (
     <div className="page">
@@ -18,12 +15,15 @@ export default async function GraphPage() {
         <div>
           <span className="eyebrow">Topology · known doors</span>
           <h1 className="page-title">The living <span className="accent">atlas</span></h1>
-          <p className="page-deck">Each light is a memory. Each path began as a wikilink.</p>
+          <p className="page-deck">Follow a connection. Rediscover a thought. See how your pages belong together.</p>
         </div>
+        <ArchiveViews active="graph" />
       </header>
       <GraphCanvas
-        nodes={(notes ?? []).map((note) => ({ id: String(note.id), title: String(note.title) }))}
-        edges={(edges ?? []).map((edge) => ({ source: String(edge.note_id), target: String(edge.linked_note_id) }))}
+        key={note ?? "atlas"}
+        nodes={pages}
+        edges={edges}
+        initialSelection={note ?? null}
       />
     </div>
   );
